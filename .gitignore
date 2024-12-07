@@ -1,0 +1,6 @@
+.env
+firebase-credentials.json
+*.sh
+*.html
+.idea
+.DS_Store
