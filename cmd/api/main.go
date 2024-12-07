@@ -12,6 +12,7 @@ import (
     "github.com/Haruk1y/hackathon-backend/internal/database"
     "github.com/Haruk1y/hackathon-backend/internal/handler"
     "github.com/Haruk1y/hackathon-backend/internal/middleware"
+	"github.com/Haruk1y/hackathon-backend/internal/ai"
 )
 
 func main() {
@@ -30,6 +31,12 @@ func main() {
     if err := database.InitDB(); err != nil {
         log.Fatalf("Failed to connect to database: %v", err)
     }
+
+    // Initialize Gemini
+    if err := ai.InitGemini(); err != nil {
+        log.Fatalf("Failed to initialize Gemini: %v", err)
+    }
+    defer ai.Close()
 
     // Initialize handler
     handler.InitHandler()  // 追加

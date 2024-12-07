@@ -19,6 +19,7 @@ type Post struct {
 	ID           string    `gorm:"primarykey;type:varchar(36)" json:"id"`
 	UserID       string    `gorm:"type:varchar(36)" json:"user_id"`
 	Content      string    `gorm:"type:text" json:"content"`
+	Summary      string    `gorm:"type:text" json:"summary"`
 	IsReply      bool      `gorm:"default:false" json:"is_reply"`
 	ParentPostID *string   `gorm:"type:varchar(36)" json:"parent_post_id"`
 	LikeCount    int       `gorm:"default:0" json:"like_count"`
