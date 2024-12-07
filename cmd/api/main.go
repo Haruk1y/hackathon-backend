@@ -20,48 +20,49 @@ func main() {
     dir, _ := os.Getwd()
     log.Printf("Current working directory: %s", dir)
 
-    // .envファイルの読み込みを試みるが、なくても続行
+    // .envファイルの読み込みを試みるが、失敗しても続行
     if err := godotenv.Load(); err != nil {
         log.Printf("Info: .env file not found, using environment variables")
     }
 
     // Initialize database connection
     if err := database.InitDB(); err != nil {
-        log.Fatalf("Failed to connect to database: %v", err)
+        log.Printf("Failed to connect to database: %v", err)
+        // データベース接続エラーはログに残すが、アプリケーションは起動継続
     }
 
-    // GeminiのInitを条件付きで行う
+    // Initialize Gemini（オプショナル）
     if os.Getenv("GEMINI_API_KEY") != "" {
         if err := ai.InitGemini(); err != nil {
             log.Printf("Warning: Failed to initialize Gemini: %v", err)
-            // Geminiの初期化失敗はfatalにしない
+            // Geminiの初期化失敗はログに残すが、アプリケーションは起動継続
         }
     } else {
         log.Printf("Info: GEMINI_API_KEY not set, skipping Gemini initialization")
     }
 
     // Initialize handler
-    handler.InitHandler()  // 追加
+    handler.InitHandler()
 
     // Initialize Firebase
     if err := auth.InitFirebase(); err != nil {
-        log.Fatalf("Failed to initialize Firebase: %v", err)
+        log.Printf("Warning: Failed to initialize Firebase: %v", err)
+        // Firebaseの初期化失敗はログに残すが、アプリケーションは起動継続
     }
 
     // Setup Gin
     r := gin.Default()
-
-    // Add middleware
     r.Use(middleware.CORS())
-
     setupRoutes(r)
 
-    // Start server
+    // Get port from environment variable
     port := os.Getenv("PORT")
     if port == "" {
         port = "8080"
     }
-    
+
+    // Start server with error handling
+    log.Printf("Starting server on port %s", port)
     if err := r.Run(":" + port); err != nil {
         log.Fatalf("Failed to start server: %v", err)
     }
