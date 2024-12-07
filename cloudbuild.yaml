@@ -1,0 +1,46 @@
+# cloudbuild.yaml
+steps:
+  # Docker イメージのビルド
+  - name: 'gcr.io/cloud-builders/docker'
+    args: [
+      'build',
+      '-t',
+      'asia-northeast1-docker.pkg.dev/${PROJECT_ID}/uttc-x/backend',
+      '.'
+    ]
+  
+  # イメージをArtifact Registryにプッシュ
+  - name: 'gcr.io/cloud-builders/docker'
+    args: [
+      'push',
+      'asia-northeast1-docker.pkg.dev/${PROJECT_ID}/uttc-x/backend'
+    ]
+  
+  # Cloud Runへのデプロイ
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args: [
+      'run',
+      'deploy',
+      'uttc-x-backend',
+      '--image',
+      'asia-northeast1-docker.pkg.dev/${PROJECT_ID}/uttc-x/backend',
+      '--region',
+      'asia-northeast1',
+      '--platform',
+      'managed',
+      '--allow-unauthenticated',
+      '--min-instances',
+      '0',
+      '--max-instances',
+      '1',
+      '--memory',
+      '256Mi',
+      '--set-cloudsql-instances',
+      '${PROJECT_ID}:asia-northeast1:uttc-x-db',
+      '--service-account',
+      'uttc-x-sa@${PROJECT_ID}.iam.gserviceaccount.com'
+    ]
+
+options:
+  logging: CLOUD_LOGGING_ONLY
