@@ -78,13 +78,18 @@ func setupRoutes(r *gin.Engine) {
                 posts.GET("", handler.GetPosts)
                 posts.POST("", handler.CreatePost)
                 
-                // Likes - これらを先に定義
+                // Likes
                 posts.POST("/:id/likes", handler.CreateLike)
                 posts.DELETE("/:id/likes", handler.DeleteLike)
                 posts.GET("/:id/likes", handler.GetPostLikes)
                 posts.GET("/:id/like-status", handler.CheckLikeStatus)
                 
-                // 個別の投稿取得 - これを最後に定義
+                // Replies - 新しいエンドポイント
+                posts.POST("/:id/replies", handler.CreateReply)
+                posts.GET("/:id/replies", handler.GetReplies)
+                posts.GET("/:id/with-replies", handler.GetPostWithReplies)
+                
+                // 個別の投稿取得
                 posts.GET("/:id", handler.GetPost)
             }
         }
