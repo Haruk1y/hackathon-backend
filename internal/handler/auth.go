@@ -56,27 +56,31 @@ func Signup(c *gin.Context) {
 }
 
 func Login(c *gin.Context) {
-	authHeader := c.GetHeader("Authorization")
-	if authHeader == "" {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authorization header is required"})
-		return
-	}
+    authHeader := c.GetHeader("Authorization")
+    log.Printf("Received auth header: %s", authHeader) // デバッグ用
 
-	idToken := strings.Replace(authHeader, "Bearer ", "", 1)
+    if authHeader == "" {
+        c.JSON(http.StatusUnauthorized, gin.H{"error": "Authorization header is required"})
+        return
+    }
 
-	// トークンの検証
-	token, err := auth.VerifyIDToken(idToken)
-	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
-		return
-	}
+    idToken := strings.Replace(authHeader, "Bearer ", "", 1)
+    
+    // トークンの検証
+    token, err := auth.VerifyIDToken(idToken)
+    if err != nil {
+        log.Printf("Token verification failed: %v", err) // デバッグ用
+        c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
+        return
+    }
 
-	// ユーザー情報の取得
-	var user model.User
-	if err := db.Where("firebase_uid = ?", token.UID).First(&user).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
-		return
-	}
+    // ユーザー情報の取得
+    var user model.User
+    if err := db.Where("firebase_uid = ?", token.UID).First(&user).Error; err != nil {
+        log.Printf("User not found: %v", err) // デバッグ用
+        c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+        return
+    }
 
-	c.JSON(http.StatusOK, user)
+    c.JSON(http.StatusOK, user)
 }
