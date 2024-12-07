@@ -18,20 +18,20 @@ func InitDB() error {
     dbPass := os.Getenv("DB_PASSWORD")
     dbName := os.Getenv("DB_NAME")
 
-    dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
-        dbUser, dbPass, dbHost, dbPort, dbName)
+    // Cloud SQL用の接続文字列フォーマットに変更
+    var dsn string
+    if strings.HasPrefix(dbHost, "/cloudsql/") {
+        // Cloud SQL環境での接続文字列
+        dsn = fmt.Sprintf("%s:%s@unix(%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
+            dbUser, dbPass, dbHost, dbName)
+    } else {
+        // ローカル環境での接続文字列
+        dsn = fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
+            dbUser, dbPass, dbHost, dbPort, dbName)
+    }
 
     db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
     if err != nil {
-        return err
-    }
-
-    // Auto-migrate all models
-    if err := db.AutoMigrate(
-        &model.User{},
-        &model.Post{},
-        &model.Like{},  // Likeモデルを追加
-    ); err != nil {
         return err
     }
 
