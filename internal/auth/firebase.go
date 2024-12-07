@@ -15,18 +15,19 @@ import (
 var firebaseAuth *auth.Client
 
 func InitFirebase() error {
+    ctx := context.Background()
     credPath := os.Getenv("FIREBASE_CREDENTIALS")
     if credPath == "" {
         return fmt.Errorf("FIREBASE_CREDENTIALS environment variable is not set")
     }
 
     opt := option.WithCredentialsFile(credPath)
-    app, err := firebase.NewApp(context.Background(), nil, opt)
+    app, err := firebase.NewApp(ctx, nil, opt)
     if err != nil {
         return fmt.Errorf("error initializing app: %v", err)
     }
 
-    client, err := app.Auth(context.Background())
+    client, err := app.Auth(ctx)
     if err != nil {
         return fmt.Errorf("error getting Auth client: %v", err)
     }
@@ -35,11 +36,13 @@ func InitFirebase() error {
     return nil
 }
 
-func VerifyIDToken(ctx context.Context, idToken string) (*auth.Token, error) {
+// VerifyIDToken verifies the ID token and returns the token claims
+func VerifyIDToken(idToken string) (*auth.Token, error) {
     if firebaseAuth == nil {
         return nil, fmt.Errorf("firebase auth client not initialized")
     }
     
+    ctx := context.Background()
     token, err := firebaseAuth.VerifyIDToken(ctx, idToken)
     if err != nil {
         return nil, fmt.Errorf("error verifying ID token: %v", err)
