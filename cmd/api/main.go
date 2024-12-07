@@ -20,11 +20,9 @@ func main() {
     dir, _ := os.Getwd()
     log.Printf("Current working directory: %s", dir)
 
-    // Load .env file
+    // .envファイルの読み込みを試みるが、なくても続行
     if err := godotenv.Load(); err != nil {
-        log.Printf("Error loading .env file: %v", err)
-    } else {
-        log.Println(".env file loaded successfully")
+        log.Printf("Info: .env file not found, using environment variables")
     }
 
     // Initialize database connection
@@ -32,11 +30,15 @@ func main() {
         log.Fatalf("Failed to connect to database: %v", err)
     }
 
-    // Initialize Gemini
-    if err := ai.InitGemini(); err != nil {
-        log.Fatalf("Failed to initialize Gemini: %v", err)
+    // GeminiのInitを条件付きで行う
+    if os.Getenv("GEMINI_API_KEY") != "" {
+        if err := ai.InitGemini(); err != nil {
+            log.Printf("Warning: Failed to initialize Gemini: %v", err)
+            // Geminiの初期化失敗はfatalにしない
+        }
+    } else {
+        log.Printf("Info: GEMINI_API_KEY not set, skipping Gemini initialization")
     }
-    defer ai.Close()
 
     // Initialize handler
     handler.InitHandler()  // 追加
