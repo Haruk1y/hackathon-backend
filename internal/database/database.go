@@ -3,10 +3,10 @@ package database
 import (
     "fmt"
     "os"
+	"strings"
 
     "gorm.io/driver/mysql"
     "gorm.io/gorm"
-    "github.com/Haruk1y/hackathon-backend/internal/model"
 )
 
 var DB *gorm.DB
