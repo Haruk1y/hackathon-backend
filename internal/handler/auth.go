@@ -11,8 +11,9 @@ import (
 
     "github.com/gin-gonic/gin"
     "github.com/google/uuid"
-    "firebase.google.com/go/v4/auth"
-    "github.com/Haruk1y/hackathon-backend/internal/auth"
+    firebase "firebase.google.com/go/v4"
+    firebaseauth "firebase.google.com/go/v4/auth"
+    internalAuth "github.com/Haruk1y/hackathon-backend/internal/auth"
     "github.com/Haruk1y/hackathon-backend/internal/model"
 )
 
@@ -43,7 +44,7 @@ func Signup(c *gin.Context) {
     }
 
     // Firebaseトークンの検証
-    token, err := auth.VerifyIDToken(context.Background(), idToken)
+    token, err := internalAuth.VerifyIDToken(context.Background(), idToken)
     if err != nil {
         log.Printf("Token verification failed: %v", err)
         c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
@@ -86,7 +87,7 @@ func Login(c *gin.Context) {
     }
 
     // Firebaseトークンの検証
-    token, err := auth.VerifyIDToken(context.Background(), idToken)
+    token, err := internalAuth.VerifyIDToken(context.Background(), idToken)
     if err != nil {
         log.Printf("Token verification failed: %v", err)
         c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
