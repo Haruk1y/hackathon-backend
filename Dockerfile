@@ -1,8 +1,3 @@
-# ローカルのhackathon-backendディレクトリで
-cd hackathon-backend
-
-# Dockerfileを作成
-cat > Dockerfile << 'EOF'
 # ビルドステージ
 FROM golang:1.21-alpine AS builder
 
@@ -42,4 +37,3 @@ EXPOSE 8080
 
 # アプリケーションの実行
 CMD ["./main"]
-EOF
