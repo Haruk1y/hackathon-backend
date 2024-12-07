@@ -6,7 +6,6 @@ import (
     "context"
     "fmt"
     "os"
-	"log"
 
     firebase "firebase.google.com/go/v4"
     "firebase.google.com/go/v4/auth"
@@ -16,30 +15,35 @@ import (
 var firebaseAuth *auth.Client
 
 func InitFirebase() error {
-    credPath := os.Getenv("GOOGLE_APPLICATION_CREDENTIALS")
+    credPath := os.Getenv("FIREBASE_CREDENTIALS")
     if credPath == "" {
-        return fmt.Errorf("GOOGLE_APPLICATION_CREDENTIALS environment variable is not set")
-    }
-
-    log.Printf("Initializing Firebase with credentials from: %s", credPath)
-
-    // 認証情報ファイルの存在確認
-    if _, err := os.Stat(credPath); os.IsNotExist(err) {
-        return fmt.Errorf("credentials file not found at: %s", credPath)
+        return fmt.Errorf("FIREBASE_CREDENTIALS environment variable is not set")
     }
 
     opt := option.WithCredentialsFile(credPath)
     app, err := firebase.NewApp(context.Background(), nil, opt)
     if err != nil {
-        return fmt.Errorf("error initializing Firebase app: %v", err)
+        return fmt.Errorf("error initializing app: %v", err)
     }
 
     client, err := app.Auth(context.Background())
     if err != nil {
-        return fmt.Errorf("error getting Firebase Auth client: %v", err)
+        return fmt.Errorf("error getting Auth client: %v", err)
     }
 
     firebaseAuth = client
-    log.Printf("Firebase initialized successfully")
     return nil
+}
+
+func VerifyIDToken(ctx context.Context, idToken string) (*auth.Token, error) {
+    if firebaseAuth == nil {
+        return nil, fmt.Errorf("firebase auth client not initialized")
+    }
+    
+    token, err := firebaseAuth.VerifyIDToken(ctx, idToken)
+    if err != nil {
+        return nil, fmt.Errorf("error verifying ID token: %v", err)
+    }
+    
+    return token, nil
 }

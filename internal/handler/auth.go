@@ -1,58 +1,73 @@
+// internal/handler/auth.go
+
 package handler
 
 import (
-	"net/http"
-	"strings"
+    "context"
+    "log"
+    "net/http"
+    "strings"
+    "time"
 
-	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
-	"github.com/Haruk1y/hackathon-backend/internal/auth"
-	"github.com/Haruk1y/hackathon-backend/internal/model"
+    "github.com/gin-gonic/gin"
+    "github.com/google/uuid"
+    "firebase.google.com/go/v4/auth"
+    "github.com/Haruk1y/hackathon-backend/internal/auth"
+    "github.com/Haruk1y/hackathon-backend/internal/model"
 )
 
 type SignupRequest struct {
-	Username    string `json:"username" binding:"required"`
-	DisplayName string `json:"displayName" binding:"required"`
+    Username    string `json:"username" binding:"required"`
+    DisplayName string `json:"displayName" binding:"required"`
 }
 
 func Signup(c *gin.Context) {
-	var req SignupRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
+    var req SignupRequest
+    if err := c.ShouldBindJSON(&req); err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+        return
+    }
 
-	// Authorizationヘッダーからトークンを取得
-	authHeader := c.GetHeader("Authorization")
-	if authHeader == "" {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authorization header is required"})
-		return
-	}
+    // Authorizationヘッダーからトークンを取得
+    authHeader := c.GetHeader("Authorization")
+    if authHeader == "" {
+        c.JSON(http.StatusUnauthorized, gin.H{"error": "Authorization header is required"})
+        return
+    }
 
-	// "Bearer "を除去してトークンを取得
-	idToken := strings.Replace(authHeader, "Bearer ", "", 1)
+    // "Bearer "を除去してトークンを取得
+    idToken := strings.TrimPrefix(authHeader, "Bearer ")
+    if idToken == authHeader {
+        c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token format"})
+        return
+    }
 
-	// Firebaseトークンの検証
-	token, err := auth.VerifyIDToken(idToken)
-	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
-		return
-	}
+    // Firebaseトークンの検証
+    token, err := auth.VerifyIDToken(context.Background(), idToken)
+    if err != nil {
+        log.Printf("Token verification failed: %v", err)
+        c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
+        return
+    }
 
-	// ユーザーの作成
-	user := model.User{
-		ID:          uuid.New().String(),
-		FirebaseUID: token.UID,
-		Username:    req.Username,
-		DisplayName: req.DisplayName,
-	}
+    // ユーザーの作成
+    user := model.User{
+        ID:          uuid.New().String(),
+        FirebaseUID: token.UID,
+        Username:    req.Username,
+        DisplayName: req.DisplayName,
+        CreatedAt:   time.Now(),
+        UpdatedAt:   time.Now(),
+        IsActive:    true,
+    }
 
-	if err := db.Create(&user).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user"})
-		return
-	}
+    if err := db.Create(&user).Error; err != nil {
+        log.Printf("Failed to create user: %v", err)
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user"})
+        return
+    }
 
-	c.JSON(http.StatusCreated, user)
+    c.JSON(http.StatusCreated, user)
 }
 
 func Login(c *gin.Context) {
