@@ -30,16 +30,10 @@ steps:
       '--platform',
       'managed',
       '--allow-unauthenticated',
-      '--min-instances',
-      '0',
-      '--max-instances',
-      '1',
-      '--memory',
-      '256Mi',
-      '--set-cloudsql-instances',
-      '${PROJECT_ID}:asia-northeast1:uttc-x-db',
       '--service-account',
-      'uttc-x-sa@${PROJECT_ID}.iam.gserviceaccount.com'
+      'uttc-x-sa@${PROJECT_ID}.iam.gserviceaccount.com',
+      '--set-cloudsql-instances',
+      '${PROJECT_ID}:asia-northeast1:uttc-x-db'
     ]
 
 options:
