@@ -45,10 +45,9 @@ func main() {
     handler.InitHandler()
 
     // Initialize Firebase
-    if err := auth.InitFirebase(); err != nil {
-        log.Printf("Warning: Failed to initialize Firebase: %v", err)
-        // Firebaseの初期化失敗はログに残すが、アプリケーションは起動継続
-    }
+	if err := auth.InitFirebase(); err != nil {
+		log.Fatalf("Failed to initialize Firebase: %v", err)
+	}
 
     // Setup Gin
     r := gin.Default()
