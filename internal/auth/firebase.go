@@ -16,12 +16,12 @@ var firebaseAuth *auth.Client
 
 func InitFirebase() error {
     credPath := os.Getenv("GOOGLE_APPLICATION_CREDENTIALS")
-    fmt.Printf("Loading credentials from: %s\n", credPath)
-    
-    if _, err := os.Stat(credPath); os.IsNotExist(err) {
-        return fmt.Errorf("credentials file not found at: %s", credPath)
+    if credPath == "" {
+        return fmt.Errorf("GOOGLE_APPLICATION_CREDENTIALS is not set")
     }
 
+    fmt.Printf("Loading credentials from: %s\n", credPath)
+    
     opt := option.WithCredentialsFile(credPath)
     app, err := firebase.NewApp(context.Background(), nil, opt)
     if err != nil {
