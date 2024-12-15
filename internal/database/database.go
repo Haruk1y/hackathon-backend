@@ -12,25 +12,32 @@ import (
 var DB *gorm.DB
 
 func InitDB() error {
-    dbHost := os.Getenv("DB_HOST")
-    dbPort := os.Getenv("DB_PORT")
     dbUser := os.Getenv("DB_USER")
     dbPass := os.Getenv("DB_PASSWORD")
     dbName := os.Getenv("DB_NAME")
-
-    dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
-        dbUser, dbPass, dbHost, dbPort, dbName)
+    dbHost := os.Getenv("DB_HOST")
+    
+    var dsn string
+    if os.Getenv("ENV") == "production" {
+        // Cloud SQL用の接続文字列
+        dsn = fmt.Sprintf("%s:%s@unix(%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
+            dbUser, dbPass, dbHost, dbName)
+    } else {
+        // ローカル開発用の接続文字列
+        dbPort := os.Getenv("DB_PORT")
+        dsn = fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
+            dbUser, dbPass, dbHost, dbPort, dbName)
+    }
 
     db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
     if err != nil {
         return err
     }
 
-    // Auto-migrate all models
     if err := db.AutoMigrate(
         &model.User{},
         &model.Post{},
-        &model.Like{},  // Likeモデルを追加
+        &model.Like{},
     ); err != nil {
         return err
     }
